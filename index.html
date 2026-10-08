@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Over Two — Card Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ═══ SETUP SCREEN ═══ -->
+  <div id="setup-screen" class="screen active">
+    <div class="title-block">
+      <h1>Over Two</h1>
+      <p class="subtitle">A Strategic Card Game</p>
+      <div class="suit-row">
+        <span>♥</span><span>♦</span><span>♠</span><span>♣</span>
+      </div>
+      <button class="rules-btn" id="rules-btn" onclick="openRules()">📖 How to Play</button>
+    </div>
+
+    <div class="mode-tabs" id="mode-tabs">
+      <button class="mode-tab selected" data-mode="local">Local · vs AI</button>
+      <button class="mode-tab" data-mode="online">Online Room</button>
+    </div>
+
+    <!-- LOCAL SETUP -->
+    <div class="setup-card" id="local-setup-card">
+      <h2>New Game Setup</h2>
+      <p style="font-size:0.7rem;color:var(--muted);margin-bottom:1rem;">How many players?</p>
+
+      <div class="player-count-selector">
+        <button class="count-btn" data-count="3">3</button>
+        <button class="count-btn selected" data-count="4">4</button>
+        <button class="count-btn" data-count="5">5</button>
+        <button class="count-btn" data-count="6">6</button>
+      </div>
+
+      <div class="player-names" id="player-names-container"></div>
+      <button class="start-btn" id="start-btn">Deal Cards &amp; Begin</button>
+    </div>
+
+    <!-- ONLINE SETUP -->
+    <div class="setup-card" id="online-setup-card" style="display:none">
+      <div class="online-tabs" id="online-tabs">
+        <button class="online-tab selected" data-online-tab="create">Create Room</button>
+        <button class="online-tab" data-online-tab="join">Join Room</button>
+      </div>
+
+      <div id="create-room-panel">
+        <div class="field-group">
+          <label>Your Name</label>
+          <input id="create-name-input" placeholder="Your name">
+        </div>
+        <div class="field-group">
+          <label>Your Avatar</label>
+          <div class="avatar-picker" id="create-avatar-picker"></div>
+        </div>
+        <p style="font-size:0.7rem;color:var(--muted);margin-bottom:1rem;">How many seats?</p>
+        <div class="player-count-selector" id="online-count-selector">
+          <button class="count-btn" data-count="3">3</button>
+          <button class="count-btn selected" data-count="4">4</button>
+          <button class="count-btn" data-count="5">5</button>
+          <button class="count-btn" data-count="6">6</button>
+        </div>
+        <button class="start-btn" id="create-room-btn">Create Room</button>
+      </div>
+
+      <div id="join-room-panel" style="display:none">
+        <div class="field-group">
+          <label>Your Name</label>
+          <input id="join-name-input" placeholder="Your name">
+        </div>
+        <div class="field-group">
+          <label>Your Avatar</label>
+          <div class="avatar-picker" id="join-avatar-picker"></div>
+        </div>
+        <div class="field-group">
+          <label>Room Code</label>
+          <input id="join-code-input" placeholder="e.g. 4F9K" style="text-transform:uppercase;letter-spacing:0.2em;">
+        </div>
+        <button class="start-btn" id="join-room-btn">Join Room</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ LOBBY SCREEN ═══ -->
+  <div id="lobby-screen" class="screen">
+    <div class="title-block">
+      <h1>Lobby</h1>
+      <p class="subtitle">Share this code</p>
+      <div class="room-code" id="lobby-room-code">----</div>
+    </div>
+
+    <div class="setup-card">
+      <h2>Players</h2>
+      <div class="seat-list" id="lobby-seats"></div>
+      <button class="start-btn" id="lobby-start-btn" style="display:none">Start Game</button>
+      <p style="font-size:0.65rem;color:var(--muted);margin-top:0.75rem;text-align:center;" id="lobby-hint">Waiting...</p>
+      <button class="leave-link" id="lobby-leave-btn">Leave Room</button>
+    </div>
+  </div>
+
+  <!-- ═══ GAME SCREEN ═══ -->
+  <div id="game-screen" class="screen">
+    <div class="top-bar">
+      <div class="game-title-sm">Over Two</div>
+      <div class="game-info-pills" id="info-pills">
+        <span class="pill" id="session-pill">Session 1</span>
+        <span class="pill pattern-pill" id="pattern-pill">No pattern</span>
+        <span class="pill active-pill" id="turn-pill">—</span>
+        <button class="pill scores-pill-btn" id="scores-pill-btn" onclick="openScoreboard()">🏆 Scores</button>
+        <button class="pill leave-pill-btn" id="leave-game-btn" onclick="leaveGame()">🚪 Leave</button>
+      </div>
+    </div>
+
+    <div class="table-arena">
+      <div class="log-corner" id="log-area"></div>
+
+      <div class="table-oval">
+        <div class="bed-pillow bed-pillow-left"></div>
+        <div class="bed-pillow bed-pillow-right"></div>
+
+        <div class="opponents-area" id="opponents-area"></div>
+
+        <div class="community-area">
+          <div class="table-label" id="table-label">Waiting for first play</div>
+          <div class="played-cards-display" id="played-cards-display">
+            <div class="table-message">No cards played yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="player-area">
+      <div class="player-area-header">
+        <div class="player-header-id">
+          <div class="avatar-wrap">
+            <div class="turn-ring" id="your-turn-ring"></div>
+            <div class="mini-avatar" id="your-avatar">Y</div>
+            <div class="match-badge" id="your-match-badge" style="display:none"></div>
+          </div>
+          <div>
+            <div class="your-name" id="your-name">Your Hand</div>
+            <div class="your-card-count" id="your-card-count">0 cards</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hand" id="player-hand"></div>
+
+      <div class="action-buttons">
+        <button class="btn btn-stop" id="stop-btn" onclick="playerStop()">Stop</button>
+        <button class="btn btn-play" id="play-btn" onclick="playerPlay()">Play Selected</button>
+      </div>
+
+      <div style="margin-top:0.5rem;font-size:0.65rem;color:var(--muted);text-align:center;" id="play-hint">
+        Tap cards to select, then press Play.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ END SCREEN ═══ -->
+  <div id="end-screen" class="screen">
+    <div class="trophy" id="end-trophy">
+      <img class="trophy-gif" id="end-trophy-gif" alt="" hidden>
+      <span id="end-trophy-emoji">🏆</span>
+    </div>
+    <div class="winner-title" id="winner-title">রাজা!</div>
+    <div class="winner-name" id="winner-name">—</div>
+    <div class="rankings" id="rankings"></div>
+    <div class="scoreboard" id="end-scoreboard">
+      <h3>Standings</h3>
+      <div class="scoreboard-table" id="end-scoreboard-table"></div>
+    </div>
+    <div class="exchange-info" id="exchange-info" style="display:none"></div>
+    <button class="play-again-btn" id="play-again-btn" onclick="playAgain()">Play Again</button>
+    <p style="font-size:0.7rem;color:var(--muted);margin-top:1rem;" id="end-wait-hint"></p>
+    <button class="leave-link" id="end-leave-btn" onclick="leaveGame()">Leave</button>
+  </div>
+
+  <!-- CARD EXCHANGE MODAL -->
+  <div class="modal-overlay" id="exchange-modal">
+    <div class="modal">
+      <h2 id="modal-title">Card Exchange</h2>
+      <p id="modal-desc"></p>
+      <div class="modal-cards" id="modal-cards"></div>
+      <button class="modal-confirm" id="modal-confirm" onclick="confirmExchange()" disabled>Confirm</button>
+    </div>
+  </div>
+
+  <!-- SCOREBOARD MODAL -->
+  <div class="modal-overlay" id="scoreboard-modal">
+    <div class="modal">
+      <h2>Scoreboard</h2>
+      <p>Points: +N for 1st place down to -1 for last, each game.</p>
+      <div class="scoreboard-table" id="scoreboard-table"></div>
+      <button class="modal-confirm" onclick="closeScoreboard()">Close</button>
+    </div>
+  </div>
+
+  <!-- RULES / HOW TO PLAY MODAL -->
+  <div class="modal-overlay" id="rules-modal">
+    <div class="modal rules-modal">
+      <h2>How to Play</h2>
+      <div class="rules-body">
+        <h3>🎯 Goal</h3>
+        <p>Be the first to play off every card in your hand. Whoever empties their hand first is crowned <strong>রাজা</strong> (the winner); whoever is still holding cards when everyone else is out becomes <strong>প্রজা</strong> (the loser).</p>
+
+        <h3>🃏 Card ranking</h3>
+        <p>Lowest to highest: <strong>3 · 4 · 5 · 6 · 7 · 8 · 9 · 10 · J · Q · K · A · 2</strong>. Suits don't matter for ranking — only for matching sets.</p>
+
+        <h3>▶️ Starting a session</h3>
+        <p>Whoever plays first in a session sets the pattern for that session by playing a single card, a pair, three of a kind, or four of a kind. Every play after that must use the <em>same</em> pattern and be an <em>equal or higher</em> rank than the last play.</p>
+
+        <h3>⏭️ Stopping</h3>
+        <p>Can't or don't want to beat the last play? Hit <strong>Stop</strong> to sit out for the rest of the session. You're back in for the next one. If everyone stops, the last player who made a valid play starts the next session.</p>
+
+        <h3>🏁 Finishing your hand</h3>
+        <p>The instant your hand is empty you're locked into that finishing position for the game. Play continues until only one player is still holding cards — they're the প্রজা.</p>
+
+        <h3>🔄 Between games</h3>
+        <p>After the first game, the রাজা takes the best card from the প্রজা's hand, then gives one card back before the next deal — a small handicap that keeps the match competitive.</p>
+
+        <h3>⏱️ Turn clock</h3>
+        <p>Each turn has a 30-second timer. If you don't play or stop in time, you're automatically stopped for that session so the game keeps moving.</p>
+
+        <h3>👥 Players</h3>
+        <p>3 to 6 players. Play locally against AI bots, or open an Online Room and share the code with friends.</p>
+      </div>
+      <button class="modal-confirm" onclick="closeRules()">Got it</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ROOM CHAT (only shown while in an online room) -->
+  <div class="chat-widget" id="chat-widget" style="display:none">
+    <button class="chat-toggle-btn" id="chat-toggle-btn">
+      💬<span class="chat-badge" id="chat-badge" style="display:none">0</span>
+    </button>
+    <div class="chat-panel" id="chat-panel" style="display:none">
+      <div class="chat-header">Room Chat</div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <input id="chat-input" placeholder="Message..." maxlength="200">
+        <button id="chat-send-btn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
