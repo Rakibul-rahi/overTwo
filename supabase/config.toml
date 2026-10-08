@@ -1,0 +1,3 @@
+# Supabase project config, read by the Supabase CLI and GitHub integration.
+# Database changes go in supabase/migrations/ as new timestamped .sql files.
+project_id = "overTwo"

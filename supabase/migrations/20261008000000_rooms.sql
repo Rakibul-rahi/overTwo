@@ -1,13 +1,25 @@
 -- Over Two — multiplayer schema
--- Run this once in your Supabase project's SQL editor (Database > SQL Editor).
--- Then go to Database > Replication and make sure the "rooms" table has
--- Realtime enabled (or run the publication line at the bottom).
+-- Applied automatically by the Supabase GitHub integration when this file is
+-- pushed to main. Every statement is safe to re-run, so it also works on a
+-- database where the old supabase-schema.sql was already run by hand.
 
--- An earlier placeholder "rooms" table (id/created_at/status, no rows) exists
--- on this project with the wrong shape for this app — replace it.
-drop table if exists rooms cascade;
+-- An earlier placeholder "rooms" table (id/created_at/status, no data column)
+-- may exist with the wrong shape for this app. Drop it only in that case, so
+-- a correct rooms table and its live games are never wiped.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.tables
+    where table_schema = 'public' and table_name = 'rooms'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'rooms' and column_name = 'data'
+  ) then
+    drop table public.rooms cascade;
+  end if;
+end $$;
 
-create table rooms (
+create table if not exists rooms (
   code text primary key,
   data jsonb not null,
   updated_at timestamptz not null default now()

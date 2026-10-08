@@ -1663,7 +1663,7 @@ function showToast(message) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// NETWORKING — ROOMS TABLE (see supabase-schema.sql)
+// NETWORKING — ROOMS TABLE (see supabase/migrations/)
 // One row per room. `data` (jsonb) is the entire lobby/game state.
 // Shape:
 // {
